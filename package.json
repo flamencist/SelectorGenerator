@@ -1,0 +1,38 @@
+{
+  "name": "selector-generator",
+  "version": "0.1.0",
+  "description": "JavaScript object that creates a unique CSS selector for a given DOM element. It has no external dependencies.",
+  "main": "selectorGenerator.js",
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flamencist/SelectorGenerator.git"
+  },
+  "keywords": [
+    "css",
+    "selector"
+  ],
+  "author": "Alexander Chermyanin <flamencist@mail.ru>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/flamencist/SelectorGenerator/issues"
+  },
+  "homepage": "https://github.com/flamencist/SelectorGenerator#readme",
+  "devDependencies": {
+    "eslint": "^3.7.1",
+    "gulp": "3.9.1",
+    "gulp-eslint": "^3.0.1",
+    "jasmine-core": "^2.5.2",
+    "karma": "^1.5.0",
+    "karma-chrome-launcher": "^2.0.0",
+    "karma-firefox-launcher": "^1.0.0",
+    "karma-ie-launcher": "^1.0.0",
+    "karma-jasmine": "^1.1.0",
+    "karma-jasmine-html-reporter": "^0.2.2",
+    "karma-phantomjs-launcher": "^1.0.2",
+    "karma-safari-launcher": "^1.0.0",
+    "phantomjs-prebuilt": "^2.1.13"
+  }
+}
