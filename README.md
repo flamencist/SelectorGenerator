@@ -19,11 +19,11 @@ JavaScript object that creates a unique CSS selector for a given DOM element. It
 
 To install __SelectorGenerator__ module for Node.js, this command should be used:
 
-	npm install npm i selector-generator
+	npm install selector-generator
 	
 Or [yarn](https://yarnpkg.com/lang/en/):
 
-    yarn add npm i selector-generator
+    yarn add selector-generator
 
 ## Tests
 
