@@ -2,7 +2,7 @@
 /// <reference path="fakeElementSelectors.js"/>
 /// <reference path="../selectorGenerator.js"/>
 /* global SelectorGenerator, fakeElementSelectors */
-describe("cssPath.selector", function () {
+describe("selectorGenerator.getSelector", function () {
 
     describe("with native web elements", function () {
         function selectorTest(elementDefinition) {
@@ -223,7 +223,7 @@ describe("cssPath.selector", function () {
 
 });
 
-describe("cssPath.path", function () {
+describe("selectorGenerator.getPath", function () {
     describe("with native web elements", function () {
         function pathTest(elementDefinition) {
             var element = elementDefinition.getElement();

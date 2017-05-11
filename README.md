@@ -6,6 +6,11 @@
 
 
 JavaScript object that creates a unique CSS selector for a given DOM element. It has no external dependencies.
+    
+    var generator = new SelectorGenerator();
+    var element = document.querySelector("input"); // <input type="text" id="login" />
+    var result = generator.getSelector(element); //=> #login
+   
 
 ## Tests
 

@@ -3,7 +3,7 @@ module.exports = function(config) {
     browsers:  ["PhantomJS"],
     frameworks: ["jasmine"],
     files: [
-      "selectorGenerator.js",
+      "src/selectorGenerator.js",
       "tests/domParser.js",
       "tests/fakeElementSelectors.js",
       "tests/**/*.spec.js"

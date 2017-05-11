@@ -2,7 +2,7 @@
   "name": "selector-generator",
   "version": "0.1.0",
   "description": "JavaScript object that creates a unique CSS selector for a given DOM element. It has no external dependencies.",
-  "main": "selectorGenerator.js",
+  "main": "src/selectorGenerator.js",
   "scripts": {
     "test": "gulp test"
   },

@@ -1,1 +1,8 @@
 tests
+node_modules
+src
+.travis.yml
+.gitignore
+karma*.js
+.eslintrc
+gulpfile.js
