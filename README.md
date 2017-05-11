@@ -6,11 +6,24 @@
 
 
 JavaScript object that creates a unique CSS selector for a given DOM element. It has no external dependencies.
-    
+ 
+## Overview    
     var generator = new SelectorGenerator();
     var element = document.querySelector("input"); // <input type="text" id="login" />
-    var result = generator.getSelector(element); //=> #login
-   
+    var selector = generator.getSelector(element); //=> #login
+    var path = generator.getPath(element); //=> body > div > input
+
+## Installation
+
+### Node.js
+
+To install __SelectorGenerator__ module for Node.js, this command should be used:
+
+	npm install npm i selector-generator
+	
+Or [yarn](https://yarnpkg.com/lang/en/):
+
+    yarn add npm i selector-generator
 
 ## Tests
 
