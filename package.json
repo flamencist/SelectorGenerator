@@ -1,6 +1,6 @@
 {
   "name": "selector-generator",
-  "version": "0.1.2",
+  "version": "0.1.6",
   "description": "JavaScript object that creates a unique CSS selector for a given DOM element. It has no external dependencies.",
   "main": "selector-generator.js",
   "scripts": {
@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/flamencist/SelectorGenerator#readme",
   "devDependencies": {
+    "del": "^2.2.2",
     "eslint": "^3.7.1",
     "gulp": "3.9.1",
     "gulp-concat-util": "^0.5.5",

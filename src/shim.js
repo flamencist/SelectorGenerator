@@ -24,7 +24,6 @@ var isFuncNative = function (f) {
         || /^\s*function\s*(\b[a-z$_][a-z0-9$_]*\b)*\s*\((|([a-z$_][a-z0-9$_]*)(\s*,[a-z$_][a-z0-9$_]*)*)\)\s*\{\s*\[native code\]\s*\}\s*$/i.test(String(f)));
 };
 
-
 var array_reduce = uncurryThis(
     Array.prototype.reduce && isFuncNative(Array.prototype.reduce) ? Array.prototype.reduce : function (callback, basis) {
         var index = 0,
@@ -81,3 +80,6 @@ var array_filter = uncurryThis(
 shim.reduce = array_reduce;
 shim.map = array_map;
 shim.filter = array_filter;
+
+var _ = shim; //eslint-disable-line no-unused-vars
+exports._  = shim;

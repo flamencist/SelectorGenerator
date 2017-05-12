@@ -1,4 +1,4 @@
-/*global DomNodePathStep, cssEscaper*/
+/*global DomNodePathStep, cssEscaper*///eslint-disable-line no-unused-vars
 /**
  * @class
  * get unique selector, path of node
@@ -34,7 +34,6 @@ function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
         steps.reverse();
         return steps.join(" ");
     }
-
 
     /**
      * @param {HTMLElement} node

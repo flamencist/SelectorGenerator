@@ -244,4 +244,3 @@ describe("selectorGenerator.getPath", function () {
         }
     });
 });
-

@@ -4,11 +4,12 @@ const Server = require("karma").Server;
 const eslint = require("gulp-eslint");
 const concat = require("gulp-concat-util");
 const gulpSync = require("gulp-sync")(gulp);
+const del = require("del");
 const os = require("os");
 const fs = require("fs");
 const pkg = require("./package.json");
-const shim = "./src/shim.js";
 const src = [
+    "./src/shim.js",
     "./src/dom-node-path-step.js",
     "./src/css-escaper.js",
     "./src/selector-generator.js"
@@ -20,7 +21,9 @@ gulp.task("test", function (done) {
         singleRun: true
     }, done).start();
 });
-gulp.task("clean", function(){});
+gulp.task("clean", function(){
+    return del([pkg.name + ".js"]);
+});
 gulp.task("concat", function(){
     return gulp.src(src.concat(["./src/no-conflict.js"]))
         .pipe(concat(pkg.name + ".js", {
@@ -40,14 +43,12 @@ gulp.task("concat", function(){
             "  if (!(\"version\" in exports)) {" + os.EOL +
             "    exports.version = \"" + pkg.version + "\";" + os.EOL +
             "  }" + os.EOL + os.EOL +
-            "  " + fs.readFileSync(shim) + os.EOL + os.EOL +
-            " (function(exports, _){"
+            " (function(exports){"
             + os.EOL + os.EOL))
         .pipe(concat.footer(os.EOL + os.EOL +
-            "	} (exports, shim));" +
+            "	} (exports));" +
             os.EOL + os.EOL +
-            " exports.SelectorGenerator.version = exports.version;" + os.EOL +
-            " exports.SelectorGenerator.noConflict = exports.noConflict;" + os.EOL +
+            "for(var key in exports){ if(exports.hasOwnProperty(key)){ exports.SelectorGenerator[key] = exports[key]; }}" + os.EOL +
             " window.SelectorGenerator = exports.SelectorGenerator;" +
             os.EOL + os.EOL +
             "} ());" +
@@ -64,5 +65,5 @@ gulp.task("eslint", function () {
 gulp.task("default", gulpSync.sync(["clean","concat","test"]));
 
 gulp.task("watch-test",function(){
-    return gulp.watch(["./src/**/*.js"], gulpSync.sync(["clean","concat","test"]));
+    return gulp.watch(["./src/**/*.js", "./tests/*.spec.js"], gulpSync.sync(["clean","concat","test"]));
 });
