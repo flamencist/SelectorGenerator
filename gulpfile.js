@@ -25,7 +25,7 @@ gulp.task("clean", function(){
     return del([pkg.name + ".js"]);
 });
 gulp.task("concat", function(){
-    return gulp.src(src.concat(["./src/no-conflict.js"]))
+    return gulp.src(src)
         .pipe(concat(pkg.name + ".js", {
             sep: os.EOL + os.EOL,
             process: function (src, filepath) {//eslint-disable-line no-unused-vars
@@ -43,10 +43,18 @@ gulp.task("concat", function(){
             "  if (!(\"version\" in exports)) {" + os.EOL +
             "    exports.version = \"" + pkg.version + "\";" + os.EOL +
             "  }" + os.EOL + os.EOL +
-            " (function(exports){"
-            + os.EOL + os.EOL))
+            " (function(exports){ " +
+             os.EOL +
+            "  function SelectorGenerator(options){" +
+             os.EOL + os.EOL))
         .pipe(concat.footer(os.EOL + os.EOL +
-            "	} (exports));" +
+            "  return new SelectorGenerator(options);" +
+            os.EOL +
+            " }" +
+            os.EOL +
+            "  exports.SelectorGenerator = SelectorGenerator;" +
+            os.EOL +
+            " } (exports));" +
             os.EOL + os.EOL +
             "for(var key in exports){ if(exports.hasOwnProperty(key)){ exports.SelectorGenerator[key] = exports[key]; }}" + os.EOL +
             " window.SelectorGenerator = exports.SelectorGenerator;" +

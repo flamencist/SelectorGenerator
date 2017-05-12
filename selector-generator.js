@@ -1,4 +1,4 @@
-/* selector-generator (ver. 0.1.6). https://github.com/flamencist/SelectorGenerator */
+/* selector-generator (ver. 0.1.8). https://github.com/flamencist/SelectorGenerator */
 
 (function () {
 
@@ -7,10 +7,11 @@
   var exports = {};
 
   if (!("version" in exports)) {
-    exports.version = "0.1.6";
+    exports.version = "0.1.8";
   }
 
- (function(exports){
+ (function(exports){ 
+  function SelectorGenerator(options){
 
 	 var shim = {};
 	 //noinspection JSUnresolvedVariable
@@ -615,6 +616,7 @@
 	         return keys;
 	     }
 	 
+	 
 	     /**
 	      * get unique selector
 	      * @method
@@ -634,21 +636,10 @@
 	 
 	 exports.SelectorGenerator = SelectorGenerator;
 
-	 var
-	     // Map over the SelectorGenerator in case of overwrite
-	     _SelectorGenerator = window.SelectorGenerator;
-	 
-	 exports.noConflict = function () {
-	     if (window.SelectorGenerator === exports.SelectorGenerator) {
-	         window.SelectorGenerator = _SelectorGenerator;
-	     }
-	 
-	     return exports.SelectorGenerator;
-	 };
-	 
-	 
-
-	} (exports));
+  return new SelectorGenerator(options);
+ }
+  exports.SelectorGenerator = SelectorGenerator;
+ } (exports));
 
 for(var key in exports){ if(exports.hasOwnProperty(key)){ exports.SelectorGenerator[key] = exports[key]; }}
  window.SelectorGenerator = exports.SelectorGenerator;
