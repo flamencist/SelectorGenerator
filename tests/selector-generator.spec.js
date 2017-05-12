@@ -1,6 +1,6 @@
 /// <reference path="domParser.js"/>
 /// <reference path="fakeElementSelectors.js"/>
-/// <reference path="../selectorGenerator.js"/>
+/// <reference path="../selector-generator.js"/>
 /* global SelectorGenerator, fakeElementSelectors */
 describe("selectorGenerator.getSelector", function () {
 

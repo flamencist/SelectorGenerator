@@ -1,8 +1,10 @@
 tests
-node_modules
 src
+node_modules
 .travis.yml
+.idea
 .gitignore
 karma*.js
 .eslintrc
 gulpfile.js
+spec-runner.html

@@ -1,4 +1,4 @@
-/*global */
+/*global DomNodePathStep, cssEscaper*/
 /**
  * @class
  * get unique selector, path of node
@@ -9,87 +9,6 @@
 function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
 
     options = options || {};
-
-    //region shim for ie < 9
-    //noinspection JSUnresolvedVariable
-    var call = Function.call;
-
-    /**
-     * wrap function and use first argument as context (this) in returned function
-     * @param f {Function} function for call
-     * @returns {Function}
-     */
-    function uncurryThis(f) {
-        return function () {
-            return call.apply(f, arguments);
-        };
-    }
-
-    /**
-     * check function is native
-     * @param f {Function} function
-     * @returns {boolean}
-     */
-    var isFuncNative = function (f) {
-        return !!f && (typeof f).toLowerCase() === "function"
-            && (f === Function.prototype
-            || /^\s*function\s*(\b[a-z$_][a-z0-9$_]*\b)*\s*\((|([a-z$_][a-z0-9$_]*)(\s*,[a-z$_][a-z0-9$_]*)*)\)\s*\{\s*\[native code\]\s*\}\s*$/i.test(String(f)));
-    };
-
-
-    var array_reduce = uncurryThis(
-        Array.prototype.reduce && isFuncNative(Array.prototype.reduce) ? Array.prototype.reduce : function (callback, basis) {
-            var index = 0,
-                length = this.length;
-            // concerning the initial value, if one is not provided
-            if (arguments.length === 1) {
-                // seek to the first value in the array, accounting
-                // for the possibility that is is a sparse array
-                do {
-                    if (index in this) {
-                        basis = this[index++];
-                        break;
-                    }
-                    if (++index >= length) {
-                        throw new TypeError();
-                    }
-                } while (1);
-            }
-            // reduce
-            for (; index < length; index++) {
-                // account for the possibility that the array is sparse
-                if (index in this) {
-                    basis = callback(basis, this[index], index);
-                }
-            }
-            return basis;
-        }
-    );
-
-    var array_map = uncurryThis(
-        Array.prototype.map && isFuncNative(Array.prototype.map) ? Array.prototype.map : function (callback, thisp) {
-            var self = this;
-            var collect = [];
-            array_reduce(self, function (undefined, value, index) {
-                collect.push(callback.call(thisp, value, index, self));
-            }, void 0);
-            return collect;
-        }
-    );
-
-    var array_filter = uncurryThis(
-        Array.prototype.filter && isFuncNative(Array.prototype.filter) ? Array.prototype.filter :
-            function (predicate, that) {
-                var other = [], v;
-                for (var i = 0, n = this.length; i < n; i++) {
-                    if (i in this && predicate.call(that, v = this[i], i, this)) {
-                        other.push(v);
-                    }
-                }
-                return other;
-            }
-    );
-    //endregion
 
     /**
      * @description get full path of node
@@ -146,25 +65,6 @@ function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
         var simplifiedSteps = simplifySelector(steps);
         return buildSelector(simplifiedSteps);
     }
-
-    /**
-     * @constructor
-     * @param {string} value
-     * @param {boolean} optimized
-     */
-    var DomNodePathStep = function (value, optimized) {
-        this.value = value;
-        this.optimized = optimized || false;
-    };
-
-    DomNodePathStep.prototype = {
-        /**
-         * @return {string}
-         */
-        toString: function () {
-            return this.value;
-        }
-    };
 
     /**
      * @param {HTMLElement} node
@@ -263,7 +163,7 @@ function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
 
         var result = nodeName;
         if (isSimpleFormElement && attributeNameNeeded) {
-            result += "[name=\"" + escapeIdentifierIfNeeded(attributeName) + "\"]";
+            result += "[name=\"" + cssEscaper.escape(attributeName) + "\"]";
             return new DomNodePathStep(result, true);
 
         } else if (isSimpleFormElement && node.getAttribute("type")) {
@@ -274,7 +174,7 @@ function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
             result += ":nth-child(" + (ownIndex + 1) + ")";
         } else if (needsClassNames) {
             for (var prefixedName in keySet(prefixedOwnClassNamesArray)) { //eslint-disable-line guard-for-in
-                result += "." + escapeIdentifierIfNeeded(prefixedName.substr(1));
+                result += "." + cssEscaper.escape(prefixedName.substr(1));
             }
         }
 
@@ -440,7 +340,7 @@ function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
         if (typeof(stepsCopy[0].value) !== "undefined") {
             return stepsCopy.join(" > ");
         } else {
-            return array_reduce(stepsCopy, function (previosValue, currentValue) {
+            return _.reduce(stepsCopy, function (previosValue, currentValue) {
                 var selector = buildSelector(currentValue);
                 return previosValue ? previosValue + " " + selector : selector;
             }, "");
@@ -456,7 +356,7 @@ function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
      * @return {boolean}
      */
     function hasSiblingsWithId(siblings, id, nodeName) {
-        return array_filter(siblings, function (el) {
+        return _.filter(siblings, function (el) {
                 return el.nodeType === 1 && el.getAttribute("id") === id && el.nodeName.toLowerCase() === nodeName;
             }).length !== 1;
     }
@@ -473,8 +373,8 @@ function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
         }
 
         var classes = classAttribute.split(/\s+/g);
-        var existClasses = array_filter(classes, Boolean);
-        return array_map(existClasses, function (name) {
+        var existClasses = _.filter(classes, Boolean);
+        return _.map(existClasses, function (name) {
             // The prefix is required to store "__proto__" in a object-based map.
             return "$" + name;
         });
@@ -486,67 +386,10 @@ function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
      * @return {string}
      */
     function idSelector(id) {
-        return "#" + escapeIdentifierIfNeeded(id);
+        return "#" + cssEscaper.escape(id);
     }
 
-    /**
-     * @function escapeIdentifierIfNeeded
-     * @param {string} ident
-     * @return {string}
-     */
-    function escapeIdentifierIfNeeded(ident) {
-        if (isCssIdentifier(ident)) {
-            return ident;
-        }
-        var shouldEscapeFirst = /^(?:[0-9]|-[0-9-]?)/.test(ident);
-        var lastIndex = ident.length - 1;
-        return ident.replace(/./g, function (c, i) {
-            return ((shouldEscapeFirst && i === 0) || !isCssIdentChar(c)) ? escapeAsciiChar(c, i === lastIndex) : c;
-        });
-    }
 
-    /**
-     * @function escapeAsciiChar
-     * @param {string} c
-     * @param {boolean} isLast
-     * @return {string}
-     */
-    function escapeAsciiChar(c, isLast) {
-        return "\\" + toHexByte(c) + (isLast ? "" : " ");
-    }
-
-    /**
-     * @function toHexByte
-     * @param {string} c
-     */
-    function toHexByte(c) {
-        var hexByte = c.charCodeAt(0).toString(16);
-        if (hexByte.length === 1) {
-            hexByte = "0" + hexByte;
-        }
-        return hexByte;
-    }
-
-    /**
-     * @function isCssIdentChar
-     * @param {string} c
-     * @return {boolean}
-     */
-    function isCssIdentChar(c) {
-        if (/[a-zA-Z0-9_-]/.test(c)) {
-            return true;
-        }
-        return c.charCodeAt(0) >= 0xA0;
-    }
-
-    /**
-     * @function isCssIdentifier
-     * @param {string} value
-     * @return {boolean}
-     */
-    function isCssIdentifier(value) {
-        return /^-?[a-zA-Z_][a-zA-Z0-9_-]*$/.test(value);
-    }
 
     /**
      * @function getClassName
@@ -600,3 +443,5 @@ function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
      */
     this.getPath = getPath;
 }
+
+exports.SelectorGenerator = SelectorGenerator;
