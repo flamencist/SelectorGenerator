@@ -1,4 +1,4 @@
-/* selector-generator (ver. 0.1.8). https://github.com/flamencist/SelectorGenerator */
+/* selector-generator (ver. 0.1.9). https://github.com/flamencist/SelectorGenerator */
 
 (function () {
 
@@ -7,119 +7,11 @@
   var exports = {};
 
   if (!("version" in exports)) {
-    exports.version = "0.1.8";
+    exports.version = "0.1.9";
   }
 
  (function(exports){ 
   function SelectorGenerator(options){
-
-	 var shim = {};
-	 //noinspection JSUnresolvedVariable
-	 var call = Function.call;
-	 
-	 /**
-	  * wrap function and use first argument as context (this) in returned function
-	  * @param f {Function} function for call
-	  * @returns {Function}
-	  */
-	 function uncurryThis(f) {
-	     return function () {
-	         return call.apply(f, arguments);
-	     };
-	 }
-	 
-	 /**
-	  * check function is native
-	  * @param f {Function} function
-	  * @returns {boolean}
-	  */
-	 var isFuncNative = function (f) {
-	     return !!f && (typeof f).toLowerCase() === "function"
-	         && (f === Function.prototype
-	         || /^\s*function\s*(\b[a-z$_][a-z0-9$_]*\b)*\s*\((|([a-z$_][a-z0-9$_]*)(\s*,[a-z$_][a-z0-9$_]*)*)\)\s*\{\s*\[native code\]\s*\}\s*$/i.test(String(f)));
-	 };
-	 
-	 var array_reduce = uncurryThis(
-	     Array.prototype.reduce && isFuncNative(Array.prototype.reduce) ? Array.prototype.reduce : function (callback, basis) {
-	         var index = 0,
-	             length = this.length;
-	         // concerning the initial value, if one is not provided
-	         if (arguments.length === 1) {
-	             // seek to the first value in the array, accounting
-	             // for the possibility that is is a sparse array
-	             do {
-	                 if (index in this) {
-	                     basis = this[index++];
-	                     break;
-	                 }
-	                 if (++index >= length) {
-	                     throw new TypeError();
-	                 }
-	             } while (1);
-	         }
-	         // reduce
-	         for (; index < length; index++) {
-	             // account for the possibility that the array is sparse
-	             if (index in this) {
-	                 basis = callback(basis, this[index], index);
-	             }
-	         }
-	         return basis;
-	     }
-	 );
-	 
-	 var array_map = uncurryThis(
-	     Array.prototype.map && isFuncNative(Array.prototype.map) ? Array.prototype.map : function (callback, thisp) {
-	         var self = this;
-	         var collect = [];
-	         array_reduce(self, function (undefined, value, index) {
-	             collect.push(callback.call(thisp, value, index, self));
-	         }, void 0);
-	         return collect;
-	     }
-	 );
-	 
-	 var array_filter = uncurryThis(
-	     Array.prototype.filter && isFuncNative(Array.prototype.filter) ? Array.prototype.filter :
-	         function (predicate, that) {
-	             var other = [], v;
-	             for (var i = 0, n = this.length; i < n; i++) {
-	                 if (i in this && predicate.call(that, v = this[i], i, this)) {
-	                     other.push(v);
-	                 }
-	             }
-	             return other;
-	         }
-	 );
-	 
-	 shim.reduce = array_reduce;
-	 shim.map = array_map;
-	 shim.filter = array_filter;
-	 
-	 var _ = shim; //eslint-disable-line no-unused-vars
-	 exports._  = shim;
-
-	 /**
-	  * @constructor
-	  * @param {string} value
-	  * @param {boolean} optimized
-	  */
-	 var DomNodePathStep = function (value, optimized) {
-	     this.value = value;
-	     this.optimized = optimized || false;
-	 };
-	 
-	 DomNodePathStep.prototype = {
-	     /**
-	      * @return {string}
-	      */
-	     toString: function () {
-	         return this.value;
-	     }
-	 };
-	 
-	 exports.DomNodePathStep = DomNodePathStep;
-	 
 
 	 var cssEscaper = (function(){
 	     /**
@@ -188,7 +80,255 @@
 	 exports.cssEscaper = cssEscaper;
 	 
 
-	 /*global DomNodePathStep, cssEscaper*///eslint-disable-line no-unused-vars
+	 /**
+	  * @constructor
+	  * @param {string} value
+	  * @param {boolean} optimized
+	  */
+	 var DomNodePathStep = function (value, optimized) {
+	     this.value = value;
+	     this.optimized = optimized || false;
+	 };
+	 
+	 DomNodePathStep.prototype = {
+	     /**
+	      * @return {string}
+	      */
+	     toString: function () {
+	         return this.value;
+	     }
+	 };
+	 
+	 exports.DomNodePathStep = DomNodePathStep;
+	 
+
+	 /* globals DomNodePathStep, cssEscaper */ //eslint-disable-line no-unused-vars
+	 /**
+	  * @param {Object?} options
+	  * @param {boolean?} options.withoutNthChild
+	  * @param {boolean?} options.optimized
+	  * @param {Node?} options.targetNode
+	  * @class
+	  * @constructor
+	  */
+	 function SelectorGeneratorStep(options) {
+	     options = options || {
+	             withoutNthChild: false,
+	             targetNode: null,
+	             optimized: false
+	         };
+	 
+	 
+	     /**
+	      * generate selector for current node
+	      * @param {HTMLElement} node
+	      * @return {DomNodePathStep} selector for current node
+	      */
+	     this.visit = function (node) {
+	         if (node.nodeType !== 1) {
+	             return null;
+	         }
+	 
+	         //region get step with id
+	         var id = node.getAttribute("id");
+	         if (options.optimized) {
+	             if (id) {
+	                 return new DomNodePathStep(idSelector(id), true);
+	             }
+	             var nodeNameLower = node.nodeName.toLowerCase();
+	             if (nodeNameLower === "body" || nodeNameLower === "head" || nodeNameLower === "html") {
+	                 return new DomNodePathStep(node.nodeName.toLowerCase(), true);
+	             }
+	         }
+	         var nodeName = node.nodeName.toLowerCase();
+	         var parent = node.parentNode;
+	         var siblings = parent.children || [];
+	 
+	         if (id && !hasSiblingsWithId(siblings, id, nodeName)) {
+	             return new DomNodePathStep(nodeName + idSelector(id), true);
+	         }
+	         //endregion
+	 
+	         //region return nodeName if not parent
+	         if (!parent || parent.nodeType === 9) // document node
+	         {
+	             return new DomNodePathStep(nodeName, true);
+	         }
+	         //endregion
+	 
+	         var siblingsWithSameNodeName = getSiblingsWithSameNodeName(node, siblings);
+	         var needsAttributeName = hasUniqueAttributeName(node,siblingsWithSameNodeName);
+	         var needsClassNames = siblingsWithSameNodeName.length > 0;
+	         var needsNthChild = isNeedsNthChild(node, siblingsWithSameNodeName, needsAttributeName);
+	         var needsType = hasType(node);
+	 
+	         var result = nodeName;
+	 
+	         if (needsAttributeName) {
+	             var attributeName = node.getAttribute("name");
+	             result += "[name=\"" + cssEscaper.escape(attributeName) + "\"]";
+	             return new DomNodePathStep(result, true);
+	         }
+	 
+	         if (needsType) {
+	             result += "[type=\"" + node.getAttribute("type") + "\"]";
+	         }
+	 
+	         if (needsNthChild && !options.withoutNthChild) {
+	             var ownIndex = _.indexOf(siblings, node);
+	             result += ":nth-child(" + (ownIndex + 1) + ")";
+	         } else if (needsClassNames) {
+	             var prefixedOwnClassNamesArray = prefixedElementClassNames(node);
+	             for (var prefixedName in keySet(prefixedOwnClassNamesArray)) { //eslint-disable-line guard-for-in
+	                 result += "." + cssEscaper.escape(prefixedName.substr(1));
+	             }
+	         }
+	 
+	         return new DomNodePathStep(result, false);
+	     };
+	 
+	     function hasUniqueAttributeName(node, siblingsWithSameNodeName){
+	         var attributeName = node.getAttribute("name");
+	         var isSimpleFormElement = isSimpleInput(node, options.targetNode === node) || isFormWithoutId(node);
+	         return !!(isSimpleFormElement && attributeName && !_.find(siblingsWithSameNodeName,function(sibling){
+	             return sibling.getAttribute("name") === attributeName;
+	         }));
+	     }
+	 
+	     function isNeedsNthChild(node, siblings, isUniqueAttributeName) {
+	         var needsNthChild = false;
+	         var prefixedOwnClassNamesArray = prefixedElementClassNames(node);
+	         for (var i = 0; (!needsNthChild) && i < siblings.length; ++i) {
+	             var sibling = siblings[i];
+	             if (needsNthChild) {
+	                 continue;
+	             }
+	 
+	             var ownClassNames = keySet(prefixedOwnClassNamesArray);
+	             var ownClassNameCount = 0;
+	 
+	             for (var name in ownClassNames) {
+	                 if (ownClassNames.hasOwnProperty(name)) {
+	                     ++ownClassNameCount;
+	                 }
+	             }
+	             if (ownClassNameCount === 0 && !isUniqueAttributeName) {
+	                 needsNthChild = true;
+	                 continue;
+	             }
+	             var siblingClassNamesArray = prefixedElementClassNames(sibling);
+	 
+	             for (var j = 0; j < siblingClassNamesArray.length; ++j) {
+	                 var siblingClass = siblingClassNamesArray[j];
+	                 if (!ownClassNames.hasOwnProperty(siblingClass)) {
+	                     continue;
+	                 }
+	                 delete ownClassNames[siblingClass];
+	                 if (!--ownClassNameCount && !isUniqueAttributeName) {
+	                     needsNthChild = true;
+	                     break;
+	                 }
+	             }
+	         }
+	         return needsNthChild;
+	     }
+	 
+	     function getSiblingsWithSameNodeName(node, siblings) {
+	         return _.filter(siblings, function (sibling) {
+	             return sibling.nodeType === 1 && sibling !== node && sibling.nodeName.toLowerCase() === node.nodeName.toLowerCase();
+	         });
+	     }
+	 
+	     function hasType(node) {
+	         return node.getAttribute("type") && (isSimpleInput(node, options.targetNode === node) || isFormWithoutId(node));
+	     }
+	 
+	     /**
+	      * @function idSelector
+	      * @param {string} id
+	      * @return {string}
+	      */
+	     function idSelector(id) {
+	         return "#" + cssEscaper.escape(id);
+	     }
+	 
+	     /**
+	      * element has siblings with same id and same tag
+	      * @function hasSiblingsWithId
+	      * @param {Array} siblings Array of elements , parent.children
+	      * @param {String} id
+	      * @param {String} nodeName
+	      * @return {boolean}
+	      */
+	     function hasSiblingsWithId(siblings, id, nodeName) {
+	         return _.filter(siblings, function (el) {
+	                 return el.nodeType === 1 && el.getAttribute("id") === id && el.nodeName.toLowerCase() === nodeName;
+	             }).length !== 1;
+	     }
+	 
+	     /**
+	      * @function keySet
+	      * @param {Array} array of keys
+	      * @return {Object}
+	      */
+	     function keySet(array) {
+	         var keys = {};
+	         for (var i = 0; i < array.length; ++i) {
+	             keys[array[i]] = true;
+	         }
+	         return keys;
+	     }
+	 
+	     /**
+	      * @function prefixedElementClassNames
+	      * @param {HTMLElement} node
+	      * @return {!Array.<string>}
+	      */
+	     function prefixedElementClassNames(node) {
+	         var classAttribute = getClassName(node);
+	         if (!classAttribute) {
+	             return [];
+	         }
+	 
+	         var classes = classAttribute.split(/\s+/g);
+	         var existClasses = _.filter(classes, Boolean);
+	         return _.map(existClasses, function (name) {
+	             // The prefix is required to store "__proto__" in a object-based map.
+	             return "$" + name;
+	         });
+	     }
+	 
+	     function isFormWithoutId(node) {
+	         return node.nodeName.toLowerCase() === "form" && !node.getAttribute("id");
+	     }
+	 
+	     /**
+	      * target is simple input without classes,id
+	      * @function isSimpleInput
+	      * @param node
+	      * @param isTargetNode
+	      * @return {boolean}
+	      */
+	     function isSimpleInput(node, isTargetNode) {
+	         return isTargetNode && node.nodeName.toLowerCase() === "input" && !node.getAttribute("id") && !getClassName(node);
+	     }
+	 
+	     /**
+	      * @function getClassName
+	      * get css class of element
+	      * @param {HTMLElement} node Web element
+	      * @return {string}
+	      */
+	     function getClassName(node) {
+	         return node.getAttribute("class") || node.className;
+	     }
+	 
+	 }
+	 
+	 exports.SelectorGeneratorStep = SelectorGeneratorStep;
+	 
+
+	 /*global  SelectorGeneratorStep */ //eslint-disable-line no-unused-vars
 	 /**
 	  * @class
 	  * get unique selector, path of node
@@ -196,7 +336,7 @@
 	  * @param {function?} options.querySelectorAll
 	  * @constructor
 	  */
-	 function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
+	 function SelectorGenerator(options) { //eslint-disable-line no-unused-vars
 	 
 	     options = options || {};
 	 
@@ -210,10 +350,15 @@
 	         if (!node || node.nodeType !== 1) {
 	             return "";
 	         }
+	         var selectorGeneratorStep = new SelectorGeneratorStep({
+	             withoutNthChild: true,
+	             optimized: false,
+	             targetNode: node
+	         });
 	         var steps = [];
 	         var contextNode = node;
 	         while (contextNode) {
-	             var step = cssPathStep(contextNode, false, contextNode === node, true);
+	             var step = selectorGeneratorStep.visit(contextNode);
 	             if (!step) {
 	                 break;
 	             } // Error - bail out early.
@@ -234,11 +379,11 @@
 	         if (!node || node.nodeType !== 1) {
 	             return "";
 	         }
-	 
+	         var selectorGeneratorStep = new SelectorGeneratorStep({optimized: !!optimized, targetNode: node});
 	         var steps = [];
 	         var contextNode = node;
 	         while (contextNode) {
-	             var step = cssPathStep(contextNode, !!optimized, contextNode === node, false);
+	             var step = selectorGeneratorStep.visit(contextNode);
 	             if (!step) {
 	                 break; // Error - bail out early.
 	             }
@@ -253,121 +398,6 @@
 	 
 	         var simplifiedSteps = simplifySelector(steps);
 	         return buildSelector(simplifiedSteps);
-	     }
-	 
-	     /**
-	      * @param {HTMLElement} node
-	      * @param {boolean?} optimized
-	      * @param {boolean?} isTargetNode
-	      * @param {boolean?} withoutNthChild
-	      * @return {DomNodePathStep} selector for current node
-	      */
-	     function cssPathStep(node, optimized, isTargetNode, withoutNthChild) {
-	         if (node.nodeType !== 1) {
-	             return null;
-	         }
-	 
-	         var id = node.getAttribute("id");
-	         if (optimized) {
-	             if (id) {
-	                 return new DomNodePathStep(idSelector(id), true);
-	             }
-	             var nodeNameLower = node.nodeName.toLowerCase();
-	             if (nodeNameLower === "body" || nodeNameLower === "head" || nodeNameLower === "html") {
-	                 return new DomNodePathStep(node.nodeName.toLowerCase(), true);
-	             }
-	         }
-	         var nodeName = node.nodeName.toLowerCase();
-	         var parent = node.parentNode;
-	         var siblings = parent.children || [];
-	 
-	         if (id && !hasSiblingsWithId(siblings, id, nodeName)) {
-	             return new DomNodePathStep(nodeName + idSelector(id), true);
-	         }
-	 
-	         if (!parent || parent.nodeType === 9) // document node
-	         {
-	             return new DomNodePathStep(nodeName, true);
-	         }
-	 
-	         var prefixedOwnClassNamesArray = prefixedElementClassNames(node);
-	         var needsClassNames = false;
-	         var needsNthChild = false;
-	         var ownIndex = -1;
-	         var elementIndex = -1;
-	 
-	         var attributeName = node.getAttribute("name");
-	         var isSimpleFormElement = isSimpleInput(node, isTargetNode) || isFormWithoutId(node);
-	         var attributeNameNeeded = !!(isSimpleFormElement && attributeName);
-	 
-	         for (var i = 0;
-	              (ownIndex === -1 || !needsNthChild) && i < siblings.length; ++i) {
-	             var sibling = siblings[i];
-	             if (sibling.nodeType !== 1) {
-	                 continue;
-	             }
-	             elementIndex += 1;
-	             if (sibling === node) {
-	                 ownIndex = elementIndex;
-	                 continue;
-	             }
-	             if (needsNthChild) {
-	                 continue;
-	             }
-	             if (sibling.nodeName.toLowerCase() !== nodeName) {
-	                 continue;
-	             }
-	 
-	             needsClassNames = true;
-	             var ownClassNames = keySet(prefixedOwnClassNamesArray);
-	             var ownClassNameCount = 0;
-	             var siblingAttributeName = sibling.getAttribute("name");
-	             if (siblingAttributeName === attributeName) {
-	                 attributeNameNeeded = false;
-	             }
-	 
-	             for (var name in ownClassNames) {
-	                 if (ownClassNames.hasOwnProperty(name)) {
-	                     ++ownClassNameCount;
-	                 }
-	             }
-	             if (ownClassNameCount === 0 && !attributeNameNeeded) {
-	                 needsNthChild = !withoutNthChild;
-	                 continue;
-	             }
-	             var siblingClassNamesArray = prefixedElementClassNames(sibling);
-	 
-	             for (var j = 0; j < siblingClassNamesArray.length; ++j) {
-	                 var siblingClass = siblingClassNamesArray[j];
-	                 if (!ownClassNames.hasOwnProperty(siblingClass)) {
-	                     continue;
-	                 }
-	                 delete ownClassNames[siblingClass];
-	                 if (!--ownClassNameCount && !attributeNameNeeded) {
-	                     needsNthChild = !withoutNthChild;
-	                     break;
-	                 }
-	             }
-	         }
-	 
-	         var result = nodeName;
-	         if (isSimpleFormElement && attributeNameNeeded) {
-	             result += "[name=\"" + cssEscaper.escape(attributeName) + "\"]";
-	             return new DomNodePathStep(result, true);
-	 
-	         } else if (isSimpleFormElement && node.getAttribute("type")) {
-	             result += "[type=\"" + node.getAttribute("type") + "\"]";
-	         }
-	 
-	         if (needsNthChild) {
-	             result += ":nth-child(" + (ownIndex + 1) + ")";
-	         } else if (needsClassNames) {
-	             for (var prefixedName in keySet(prefixedOwnClassNamesArray)) { //eslint-disable-line guard-for-in
-	                 result += "." + cssEscaper.escape(prefixedName.substr(1));
-	             }
-	         }
-	 
-	         return new DomNodePathStep(result, false);
 	     }
 	 
 	     /**
@@ -475,22 +505,6 @@
 	     }
 	 
 	     /**
-	      * target is simple input without classes,id
-	      * @function isSimpleInput
-	      * @param node
-	      * @param isTargetNode
-	      * @return {boolean}
-	      */
-	     function isSimpleInput(node, isTargetNode) {
-	         return isTargetNode && node.nodeName.toLowerCase() === "input" && !node.getAttribute("id") && !getClassName(node);
-	     }
-	 
-	     function isFormWithoutId(node) {
-	         return node.nodeName.toLowerCase() === "form" && !node.getAttribute("id");
-	     }
-	 
-	 
-	     /**
 	      * create selector string from steps array
 	      * @function buildSelector
 	      * @example
@@ -537,60 +551,6 @@
 	     }
 	 
 	     /**
-	      * element has siblings with same id and same tag
-	      * @function hasSiblingsWithId
-	      * @param {Array} siblings Array of elements , parent.children
-	      * @param {String} id
-	      * @param {String} nodeName
-	      * @return {boolean}
-	      */
-	     function hasSiblingsWithId(siblings, id, nodeName) {
-	         return _.filter(siblings, function (el) {
-	                 return el.nodeType === 1 && el.getAttribute("id") === id && el.nodeName.toLowerCase() === nodeName;
-	             }).length !== 1;
-	     }
-	 
-	     /**
-	      * @function prefixedElementClassNames
-	      * @param {HTMLElement} node
-	      * @return {!Array.<string>}
-	      */
-	     function prefixedElementClassNames(node) {
-	         var classAttribute = getClassName(node);
-	         if (!classAttribute) {
-	             return [];
-	         }
-	 
-	         var classes = classAttribute.split(/\s+/g);
-	         var existClasses = _.filter(classes, Boolean);
-	         return _.map(existClasses, function (name) {
-	             // The prefix is required to store "__proto__" in a object-based map.
-	             return "$" + name;
-	         });
-	     }
-	 
-	     /**
-	      * @function idSelector
-	      * @param {string} id
-	      * @return {string}
-	      */
-	     function idSelector(id) {
-	         return "#" + cssEscaper.escape(id);
-	     }
-	 
-	 
-	 
-	     /**
-	      * @function getClassName
-	      * get css class of element
-	      * @param {HTMLElement} node Web element
-	      * @return {string}
-	      */
-	     function getClassName(node) {
-	         return node.getAttribute("class") || node.className;
-	     }
-	 
-	     /**
 	      * @function isUniqueSelector
 	      * detect selector is unique
 	      * @param {String} selector
@@ -602,20 +562,6 @@
 	         }
 	         return options.querySelectorAll(selector).length < 2;
 	     }
-	 
-	     /**
-	      * @function keySet
-	      * @param {Array} array of keys
-	      * @return {Object}
-	      */
-	     function keySet(array) {
-	         var keys = {};
-	         for (var i = 0; i < array.length; ++i) {
-	             keys[array[i]] = true;
-	         }
-	         return keys;
-	     }
-	 
 	 
 	     /**
 	      * get unique selector
@@ -635,6 +581,191 @@
 	 }
 	 
 	 exports.SelectorGenerator = SelectorGenerator;
+
+	 var shim = {};
+	 //noinspection JSUnresolvedVariable
+	 var call = Function.call;
+	 
+	 /**
+	  * wrap function and use first argument as context (this) in returned function
+	  * @param f {Function} function for call
+	  * @returns {Function}
+	  */
+	 function uncurryThis(f) {
+	     return function () {
+	         return call.apply(f, arguments);
+	     };
+	 }
+	 
+	 /**
+	  * check function is native
+	  * @param f {Function} function
+	  * @returns {boolean}
+	  */
+	 var isFuncNative = function (f) {
+	     return !!f && (typeof f).toLowerCase() === "function"
+	         && (f === Function.prototype
+	         || /^\s*function\s*(\b[a-z$_][a-z0-9$_]*\b)*\s*\((|([a-z$_][a-z0-9$_]*)(\s*,[a-z$_][a-z0-9$_]*)*)\)\s*\{\s*\[native code\]\s*\}\s*$/i.test(String(f)));
+	 };
+	 
+	 /**
+	  *
+	  * @method getFuncNative
+	  * @param fun
+	  * @return {null}
+	  * @private
+	  */
+	 var getFuncNative = function (fun) {
+	     return fun && isFuncNative(fun) ? fun : null;
+	 };
+	 
+	 var array_reduce = uncurryThis(
+	     Array.prototype.reduce && isFuncNative(Array.prototype.reduce) ? Array.prototype.reduce : function (callback, basis) {
+	         var index = 0,
+	             length = this.length;
+	         // concerning the initial value, if one is not provided
+	         if (arguments.length === 1) {
+	             // seek to the first value in the array, accounting
+	             // for the possibility that is is a sparse array
+	             do {
+	                 if (index in this) {
+	                     basis = this[index++];
+	                     break;
+	                 }
+	                 if (++index >= length) {
+	                     throw new TypeError();
+	                 }
+	             } while (1);
+	         }
+	         // reduce
+	         for (; index < length; index++) {
+	             // account for the possibility that the array is sparse
+	             if (index in this) {
+	                 basis = callback(basis, this[index], index);
+	             }
+	         }
+	         return basis;
+	     }
+	 );
+	 
+	 var array_map = uncurryThis(
+	     Array.prototype.map && isFuncNative(Array.prototype.map) ? Array.prototype.map : function (callback, thisp) {
+	         var self = this;
+	         var collect = [];
+	         array_reduce(self, function (undefined, value, index) {
+	             collect.push(callback.call(thisp, value, index, self));
+	         }, void 0);
+	         return collect;
+	     }
+	 );
+	 
+	 var array_filter = uncurryThis(
+	     Array.prototype.filter && isFuncNative(Array.prototype.filter) ? Array.prototype.filter :
+	         function (predicate, that) {
+	             var other = [], v;
+	             for (var i = 0, n = this.length; i < n; i++) {
+	                 if (i in this && predicate.call(that, v = this[i], i, this)) {
+	                     other.push(v);
+	                 }
+	             }
+	             return other;
+	         }
+	 );
+	 
+	 /**
+	  * shim for array.indexOf
+	  *
+	  * @function array_indexOf
+	  * @example
+	  *  ```
+	  *      var arr = [2,3,4];
+	  *      var result = arrayUtils.indexOf(arr, 3);
+	  *      console.log(result);
+	  *  ```
+	  *    *result: 1*
+	  * @type {Function}
+	  * @private
+	  */
+	 var array_indexOf = uncurryThis(getFuncNative(Array.prototype.indexOf) ||
+	     function (searchElement, fromIndex) {
+	         var k;
+	 
+	         if (!this || !this.length) {//eslint-disable-line no-invalid-this
+	             throw new TypeError("\"this\" is null or not defined");
+	         }
+	 
+	         var O = Object(this);//eslint-disable-line no-invalid-this
+	 
+	         var len = O.length >>> 0;
+	 
+	         if (len === 0) {
+	             return -1;
+	         }
+	 
+	         var n = +fromIndex || 0;
+	 
+	         if (Math.abs(n) === Infinity) {
+	             n = 0;
+	         }
+	 
+	         if (n >= len) {
+	             return -1;
+	         }
+	 
+	         k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+	 
+	         while (k < len) {
+	             if (k in O && O[k] === searchElement) {
+	                 return k;
+	             }
+	             k++;
+	         }
+	         return -1;
+	     });
+	 
+	 /**
+	  * array find shim
+	  *
+	  * @function array_find
+	  * @example
+	  *  ```
+	  *      var arr = [2,3,4];
+	  *      var result = arrayUtils.find(arr, function(item){
+	          *          return item % 2 === 0;
+	          *      });
+	  *      console.log(result);
+	  *  ```
+	  *    *result: 2*
+	  * @type {Function}
+	  * @private
+	  */
+	 var array_find = uncurryThis(getFuncNative(Array.prototype.find) ||
+	     function (predicate, that) {
+	         var length = this.length;//eslint-disable-line no-invalid-this
+	         if (typeof predicate !== "function") {
+	             throw new TypeError("Array#find: predicate must be a function");
+	         }
+	         if (length === 0) {
+	             return undefined;
+	         }
+	         for (var i = 0, value; i < length; i++) {
+	             value = this[i];//eslint-disable-line no-invalid-this
+	             if (predicate.call(that, value, i, this)) {
+	                 return value;
+	             }
+	         }
+	         return undefined;
+	     }
+	 );
+	 
+	 shim.reduce = array_reduce;
+	 shim.map = array_map;
+	 shim.filter = array_filter;
+	 shim.indexOf = array_indexOf;
+	 shim.find = array_find;
+	 
+	 var _ = shim; //eslint-disable-line no-unused-vars
+	 exports._  = shim;
 
   return new SelectorGenerator(options);
  }

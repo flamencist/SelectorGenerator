@@ -9,17 +9,17 @@ const os = require("os");
 const fs = require("fs");
 const pkg = require("./package.json");
 const src = [
-    "./src/shim.js",
-    "./src/dom-node-path-step.js",
-    "./src/css-escaper.js",
-    "./src/selector-generator.js"
+    "./src/**/*.js"
 ];
 
 gulp.task("test", function (done) {
-    return new Server({
+    var server = new Server({
         configFile: __dirname + "/karma.conf.js",
         singleRun: true
-    }, done).start();
+    }, function() {
+        done();
+    });
+    return server.start();
 });
 gulp.task("clean", function(){
     return del([pkg.name + ".js"]);

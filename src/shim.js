@@ -24,6 +24,17 @@ var isFuncNative = function (f) {
         || /^\s*function\s*(\b[a-z$_][a-z0-9$_]*\b)*\s*\((|([a-z$_][a-z0-9$_]*)(\s*,[a-z$_][a-z0-9$_]*)*)\)\s*\{\s*\[native code\]\s*\}\s*$/i.test(String(f)));
 };
 
+/**
+ *
+ * @method getFuncNative
+ * @param fun
+ * @return {null}
+ * @private
+ */
+var getFuncNative = function (fun) {
+    return fun && isFuncNative(fun) ? fun : null;
+};
+
 var array_reduce = uncurryThis(
     Array.prototype.reduce && isFuncNative(Array.prototype.reduce) ? Array.prototype.reduce : function (callback, basis) {
         var index = 0,
@@ -77,9 +88,97 @@ var array_filter = uncurryThis(
         }
 );
 
+/**
+ * shim for array.indexOf
+ *
+ * @function array_indexOf
+ * @example
+ *  ```
+ *      var arr = [2,3,4];
+ *      var result = arrayUtils.indexOf(arr, 3);
+ *      console.log(result);
+ *  ```
+ *    *result: 1*
+ * @type {Function}
+ * @private
+ */
+var array_indexOf = uncurryThis(getFuncNative(Array.prototype.indexOf) ||
+    function (searchElement, fromIndex) {
+        var k;
+
+        if (!this || !this.length) {//eslint-disable-line no-invalid-this
+            throw new TypeError("\"this\" is null or not defined");
+        }
+
+        var O = Object(this);//eslint-disable-line no-invalid-this
+
+        var len = O.length >>> 0;
+
+        if (len === 0) {
+            return -1;
+        }
+
+        var n = +fromIndex || 0;
+
+        if (Math.abs(n) === Infinity) {
+            n = 0;
+        }
+
+        if (n >= len) {
+            return -1;
+        }
+
+        k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+
+        while (k < len) {
+            if (k in O && O[k] === searchElement) {
+                return k;
+            }
+            k++;
+        }
+        return -1;
+    });
+
+/**
+ * array find shim
+ *
+ * @function array_find
+ * @example
+ *  ```
+ *      var arr = [2,3,4];
+ *      var result = arrayUtils.find(arr, function(item){
+         *          return item % 2 === 0;
+         *      });
+ *      console.log(result);
+ *  ```
+ *    *result: 2*
+ * @type {Function}
+ * @private
+ */
+var array_find = uncurryThis(getFuncNative(Array.prototype.find) ||
+    function (predicate, that) {
+        var length = this.length;//eslint-disable-line no-invalid-this
+        if (typeof predicate !== "function") {
+            throw new TypeError("Array#find: predicate must be a function");
+        }
+        if (length === 0) {
+            return undefined;
+        }
+        for (var i = 0, value; i < length; i++) {
+            value = this[i];//eslint-disable-line no-invalid-this
+            if (predicate.call(that, value, i, this)) {
+                return value;
+            }
+        }
+        return undefined;
+    }
+);
+
 shim.reduce = array_reduce;
 shim.map = array_map;
 shim.filter = array_filter;
+shim.indexOf = array_indexOf;
+shim.find = array_find;
 
 var _ = shim; //eslint-disable-line no-unused-vars
 exports._  = shim;

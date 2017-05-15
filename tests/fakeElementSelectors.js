@@ -18,7 +18,7 @@ var fakeElementSelectors = (function () {
             "<html>" +
             "<body>" +
             "<form>" +
-            '<input type="text" id="login" /><br/>' +
+            "<input type=\"text\" id=\"login\" /><br/>" +
             "</form>" +
             "</body>" +
             "</html>",
@@ -74,12 +74,12 @@ var fakeElementSelectors = (function () {
             "<html>" +
             "<body>" +
             "<form>" +
-            '<input type="email"/><br/>' +
+            "<input type=\"email\"/><br/>" +
             "</form>" +
             "</body>" +
             "</html>"
             ,
-            selector: 'form > input[type="email"]',
+            selector: "form > input[type=\"email\"]",
             path:"html body form input[type=\"email\"]"
         }),
         getFakeElement({
@@ -89,7 +89,7 @@ var fakeElementSelectors = (function () {
             "<html>" +
             "<body>" +
             "<form>" +
-            '<button>Click</button><br/>' +
+            "<button>Click</button><br/>" +
             "</form>" +
             "</body>" +
             "</html>",
@@ -514,12 +514,12 @@ var fakeElementSelectors = (function () {
             "<div>" +
             "<div>" +
             "<div>" +
-            '<input type="text"/> <br\>' +
+            "<input type=\"text\"/> <br\>" +
             "</div>" +
             "</div>" +
             "</div>" +
             "<div>" +
-            '<input type="text"/> <br\>' +
+            "<input type=\"text\"/> <br\>" +
             "</div>" +
             "</div>" +
             "</body>" +
@@ -536,7 +536,7 @@ var fakeElementSelectors = (function () {
             "<div>" +
             "<div>" +
             "<div>" +
-            '<input type="text"/> <br\>' +
+            "<input type=\"text\"/> <br\>" +
             "</div>" +
             "</div>" +
             "</div>" +
@@ -557,7 +557,6 @@ var fakeElementSelectors = (function () {
             "</html>",
             selector: "html > body"
         })
-
     ];
 })();
 

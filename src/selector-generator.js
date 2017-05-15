@@ -1,4 +1,4 @@
-/*global DomNodePathStep, cssEscaper*///eslint-disable-line no-unused-vars
+/*global  SelectorGeneratorStep */ //eslint-disable-line no-unused-vars
 /**
  * @class
  * get unique selector, path of node
@@ -6,7 +6,7 @@
  * @param {function?} options.querySelectorAll
  * @constructor
  */
-function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
+function SelectorGenerator(options) { //eslint-disable-line no-unused-vars
 
     options = options || {};
 
@@ -20,10 +20,15 @@ function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
         if (!node || node.nodeType !== 1) {
             return "";
         }
+        var selectorGeneratorStep = new SelectorGeneratorStep({
+            withoutNthChild: true,
+            optimized: false,
+            targetNode: node
+        });
         var steps = [];
         var contextNode = node;
         while (contextNode) {
-            var step = cssPathStep(contextNode, false, contextNode === node, true);
+            var step = selectorGeneratorStep.visit(contextNode);
             if (!step) {
                 break;
             } // Error - bail out early.
@@ -44,11 +49,11 @@ function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
         if (!node || node.nodeType !== 1) {
             return "";
         }
-
+        var selectorGeneratorStep = new SelectorGeneratorStep({optimized: !!optimized, targetNode: node});
         var steps = [];
         var contextNode = node;
         while (contextNode) {
-            var step = cssPathStep(contextNode, !!optimized, contextNode === node, false);
+            var step = selectorGeneratorStep.visit(contextNode);
             if (!step) {
                 break; // Error - bail out early.
             }
@@ -63,121 +68,6 @@ function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
 
         var simplifiedSteps = simplifySelector(steps);
         return buildSelector(simplifiedSteps);
-    }
-
-    /**
-     * @param {HTMLElement} node
-     * @param {boolean?} optimized
-     * @param {boolean?} isTargetNode
-     * @param {boolean?} withoutNthChild
-     * @return {DomNodePathStep} selector for current node
-     */
-    function cssPathStep(node, optimized, isTargetNode, withoutNthChild) {
-        if (node.nodeType !== 1) {
-            return null;
-        }
-
-        var id = node.getAttribute("id");
-        if (optimized) {
-            if (id) {
-                return new DomNodePathStep(idSelector(id), true);
-            }
-            var nodeNameLower = node.nodeName.toLowerCase();
-            if (nodeNameLower === "body" || nodeNameLower === "head" || nodeNameLower === "html") {
-                return new DomNodePathStep(node.nodeName.toLowerCase(), true);
-            }
-        }
-        var nodeName = node.nodeName.toLowerCase();
-        var parent = node.parentNode;
-        var siblings = parent.children || [];
-
-        if (id && !hasSiblingsWithId(siblings, id, nodeName)) {
-            return new DomNodePathStep(nodeName + idSelector(id), true);
-        }
-
-        if (!parent || parent.nodeType === 9) // document node
-        {
-            return new DomNodePathStep(nodeName, true);
-        }
-
-        var prefixedOwnClassNamesArray = prefixedElementClassNames(node);
-        var needsClassNames = false;
-        var needsNthChild = false;
-        var ownIndex = -1;
-        var elementIndex = -1;
-
-        var attributeName = node.getAttribute("name");
-        var isSimpleFormElement = isSimpleInput(node, isTargetNode) || isFormWithoutId(node);
-        var attributeNameNeeded = !!(isSimpleFormElement && attributeName);
-
-        for (var i = 0;
-             (ownIndex === -1 || !needsNthChild) && i < siblings.length; ++i) {
-            var sibling = siblings[i];
-            if (sibling.nodeType !== 1) {
-                continue;
-            }
-            elementIndex += 1;
-            if (sibling === node) {
-                ownIndex = elementIndex;
-                continue;
-            }
-            if (needsNthChild) {
-                continue;
-            }
-            if (sibling.nodeName.toLowerCase() !== nodeName) {
-                continue;
-            }
-
-            needsClassNames = true;
-            var ownClassNames = keySet(prefixedOwnClassNamesArray);
-            var ownClassNameCount = 0;
-            var siblingAttributeName = sibling.getAttribute("name");
-            if (siblingAttributeName === attributeName) {
-                attributeNameNeeded = false;
-            }
-
-            for (var name in ownClassNames) {
-                if (ownClassNames.hasOwnProperty(name)) {
-                    ++ownClassNameCount;
-                }
-            }
-            if (ownClassNameCount === 0 && !attributeNameNeeded) {
-                needsNthChild = !withoutNthChild;
-                continue;
-            }
-            var siblingClassNamesArray = prefixedElementClassNames(sibling);
-
-            for (var j = 0; j < siblingClassNamesArray.length; ++j) {
-                var siblingClass = siblingClassNamesArray[j];
-                if (!ownClassNames.hasOwnProperty(siblingClass)) {
-                    continue;
-                }
-                delete ownClassNames[siblingClass];
-                if (!--ownClassNameCount && !attributeNameNeeded) {
-                    needsNthChild = !withoutNthChild;
-                    break;
-                }
-            }
-        }
-
-        var result = nodeName;
-        if (isSimpleFormElement && attributeNameNeeded) {
-            result += "[name=\"" + cssEscaper.escape(attributeName) + "\"]";
-            return new DomNodePathStep(result, true);
-
-        } else if (isSimpleFormElement && node.getAttribute("type")) {
-            result += "[type=\"" + node.getAttribute("type") + "\"]";
-        }
-
-        if (needsNthChild) {
-            result += ":nth-child(" + (ownIndex + 1) + ")";
-        } else if (needsClassNames) {
-            for (var prefixedName in keySet(prefixedOwnClassNamesArray)) { //eslint-disable-line guard-for-in
-                result += "." + cssEscaper.escape(prefixedName.substr(1));
-            }
-        }
-
-        return new DomNodePathStep(result, false);
     }
 
     /**
@@ -285,22 +175,6 @@ function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
     }
 
     /**
-     * target is simple input without classes,id
-     * @function isSimpleInput
-     * @param node
-     * @param isTargetNode
-     * @return {boolean}
-     */
-    function isSimpleInput(node, isTargetNode) {
-        return isTargetNode && node.nodeName.toLowerCase() === "input" && !node.getAttribute("id") && !getClassName(node);
-    }
-
-    function isFormWithoutId(node) {
-        return node.nodeName.toLowerCase() === "form" && !node.getAttribute("id");
-    }
-
-
-    /**
      * create selector string from steps array
      * @function buildSelector
      * @example
@@ -347,60 +221,6 @@ function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
     }
 
     /**
-     * element has siblings with same id and same tag
-     * @function hasSiblingsWithId
-     * @param {Array} siblings Array of elements , parent.children
-     * @param {String} id
-     * @param {String} nodeName
-     * @return {boolean}
-     */
-    function hasSiblingsWithId(siblings, id, nodeName) {
-        return _.filter(siblings, function (el) {
-                return el.nodeType === 1 && el.getAttribute("id") === id && el.nodeName.toLowerCase() === nodeName;
-            }).length !== 1;
-    }
-
-    /**
-     * @function prefixedElementClassNames
-     * @param {HTMLElement} node
-     * @return {!Array.<string>}
-     */
-    function prefixedElementClassNames(node) {
-        var classAttribute = getClassName(node);
-        if (!classAttribute) {
-            return [];
-        }
-
-        var classes = classAttribute.split(/\s+/g);
-        var existClasses = _.filter(classes, Boolean);
-        return _.map(existClasses, function (name) {
-            // The prefix is required to store "__proto__" in a object-based map.
-            return "$" + name;
-        });
-    }
-
-    /**
-     * @function idSelector
-     * @param {string} id
-     * @return {string}
-     */
-    function idSelector(id) {
-        return "#" + cssEscaper.escape(id);
-    }
-
-
-
-    /**
-     * @function getClassName
-     * get css class of element
-     * @param {HTMLElement} node Web element
-     * @return {string}
-     */
-    function getClassName(node) {
-        return node.getAttribute("class") || node.className;
-    }
-
-    /**
      * @function isUniqueSelector
      * detect selector is unique
      * @param {String} selector
@@ -412,20 +232,6 @@ function SelectorGenerator (options) { //eslint-disable-line no-unused-vars
         }
         return options.querySelectorAll(selector).length < 2;
     }
-
-    /**
-     * @function keySet
-     * @param {Array} array of keys
-     * @return {Object}
-     */
-    function keySet(array) {
-        var keys = {};
-        for (var i = 0; i < array.length; ++i) {
-            keys[array[i]] = true;
-        }
-        return keys;
-    }
-
 
     /**
      * get unique selector
