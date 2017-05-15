@@ -6,10 +6,10 @@ const concat = require("gulp-concat-util");
 const gulpSync = require("gulp-sync")(gulp);
 const del = require("del");
 const os = require("os");
-const fs = require("fs");
 const pkg = require("./package.json");
 const src = [
-    "./src/**/*.js"
+    "./src/shim.js",
+    "./src/**/!(shim)*.js"
 ];
 
 gulp.task("test", function (done) {
@@ -65,7 +65,7 @@ gulp.task("concat", function(){
 });
 
 gulp.task("eslint", function () {
-    return gulp.src(["./src/**/*.js", "./tests/*.spec.js"])
+    return gulp.src(["./src/**/*.js", "./tests/*.spec.js","./selector-generator.js"])
         .pipe(eslint())
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
