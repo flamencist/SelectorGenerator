@@ -1,4 +1,4 @@
-/* selector-generator (ver. 0.1.9). https://github.com/flamencist/SelectorGenerator */
+/* selector-generator (ver. 0.2.1). https://github.com/flamencist/SelectorGenerator */
 
 (function () {
 
@@ -7,7 +7,7 @@
   var exports = {};
 
   if (!("version" in exports)) {
-    exports.version = "0.1.9";
+    exports.version = "0.2.1";
   }
 
  (function(exports){ 
@@ -117,7 +117,6 @@
 	             targetNode: null,
 	             optimized: false
 	         };
-	 
 	 
 	     /**
 	      * generate selector for current node

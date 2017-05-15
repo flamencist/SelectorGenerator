@@ -73,5 +73,5 @@ gulp.task("eslint", function () {
 gulp.task("default", gulpSync.sync(["clean","concat","test"]));
 
 gulp.task("watch-test",function(){
-    return gulp.watch(["./src/**/*.js", "./tests/*.spec.js"], gulpSync.sync(["clean","concat","test"]));
+    return gulp.watch(["./src/**/*.js", "./tests/*.spec.js","package.json"], gulpSync.sync(["clean","concat","test"]));
 });

@@ -14,7 +14,6 @@ function SelectorGeneratorStep(options) {
             optimized: false
         };
 
-
     /**
      * generate selector for current node
      * @param {HTMLElement} node
