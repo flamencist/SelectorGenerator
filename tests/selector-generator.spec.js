@@ -56,17 +56,6 @@ describe("selectorGenerator.getSelector", function () {
             expect(result).toBe("input");
         });
 
-        it("return id only if optmized enable", function () {
-            var node = {
-                nodeType: 1, getAttribute: function () {
-                    return "login";
-                }, nodeName: "input", parentNode: {nodeType: 9}
-            };
-            var generator = new SelectorGenerator({querySelectorAll:querySelectorAllMock});
-            var result = generator.getSelector(node, true);
-            expect(result).toEqual("#login");
-        });
-
         it("return tag body or html or head if optmized enable", function () {
             var node = {nodeType: 1, getAttribute: jasmine.createSpy(), nodeName: "body", parentNode: {nodeType: 9}};
             var node2 = {nodeType: 1, getAttribute: jasmine.createSpy(), nodeName: "html", parentNode: {nodeType: 9}};
@@ -129,18 +118,16 @@ describe("selectorGenerator.getSelector", function () {
         it("check unique of selector", function () {
             var node = {
                 nodeType: 1,
-                parentNode: {
-                    nodeName: "form", children: [{
-                        nodeType: 1, nodeName: "input", getAttribute: function () {
-                            return "id";
-                        }
-                    }]
-                },
                 getAttribute: function () {
                     return "id";
                 },
                 nodeName: "input"
             };
+            var parentNode = {
+                nodeName: "form"
+            };
+            node.parentNode = parentNode;
+            parentNode.children = [node];
             var expectedSelector = "input#id";
             var isCalled = false;
             var querySelectorAll = function () {
@@ -157,18 +144,16 @@ describe("selectorGenerator.getSelector", function () {
         it("not check unique of selector when querySelectorAll dependency not defined", function () {
             var node = {
                 nodeType: 1,
-                parentNode: {
-                    nodeName: "form", children: [{
-                        nodeType: 1, nodeName: "input", getAttribute: function () {
-                            return "id";
-                        }
-                    }]
-                },
                 getAttribute: function () {
                     return "id";
                 },
                 nodeName: "input"
             };
+            var parentNode = {
+                nodeName: "form"
+            };
+            node.parentNode = parentNode;
+            parentNode.children = [node];
             var expectedSelector = "input#id";
             var generator = new SelectorGenerator({querySelectorAll:null});
             var result = generator.getSelector(node);

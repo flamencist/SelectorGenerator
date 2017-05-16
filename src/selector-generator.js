@@ -22,7 +22,6 @@ function SelectorGenerator(options) { //eslint-disable-line no-unused-vars
         }
         var selectorGeneratorStep = new SelectorGeneratorStep({
             withoutNthChild: true,
-            optimized: false,
             targetNode: node
         });
         var steps = [];
@@ -42,14 +41,13 @@ function SelectorGenerator(options) { //eslint-disable-line no-unused-vars
 
     /**
      * @param {HTMLElement} node
-     * @param {boolean?} optimized
      * @return {string}
      */
-    function getSelector(node, optimized) {
+    function getSelector(node) {
         if (!node || node.nodeType !== 1) {
             return "";
         }
-        var selectorGeneratorStep = new SelectorGeneratorStep({optimized: !!optimized, targetNode: node});
+        var selectorGeneratorStep = new SelectorGeneratorStep({targetNode: node});
         var steps = [];
         var contextNode = node;
         while (contextNode) {

@@ -1,4 +1,4 @@
-/* globals DomNodePathStep, cssEscaper */ //eslint-disable-line no-unused-vars
+/* globals DomNodePathStep, cssEscaper, autogenCheck */ //eslint-disable-line no-unused-vars
 /**
  * @param {Object?} options
  * @param {boolean?} options.withoutNthChild
@@ -10,8 +10,7 @@
 function SelectorGeneratorStep(options) {
     options = options || {
             withoutNthChild: false,
-            targetNode: null,
-            optimized: false
+            targetNode: null
         };
 
     /**
@@ -24,42 +23,30 @@ function SelectorGeneratorStep(options) {
             return null;
         }
 
-        //region get step with id
-        var id = node.getAttribute("id");
-        if (options.optimized) {
-            if (id) {
-                return new DomNodePathStep(idSelector(id), true);
-            }
-            var nodeNameLower = node.nodeName.toLowerCase();
-            if (nodeNameLower === "body" || nodeNameLower === "head" || nodeNameLower === "html") {
-                return new DomNodePathStep(node.nodeName.toLowerCase(), true);
-            }
-        }
         var nodeName = node.nodeName.toLowerCase();
         var parent = node.parentNode;
         var siblings = parent.children || [];
+        var siblingsWithSameNodeName = getSiblingsWithSameNodeName(node, siblings);
 
-        if (id && !hasSiblingsWithId(siblings, id, nodeName)) {
+        var needsId = hasId(node, siblingsWithSameNodeName);
+        if (needsId) {
+            var id = node.getAttribute("id");
             return new DomNodePathStep(nodeName + idSelector(id), true);
-        }
-        //endregion
 
-        //region return nodeName if not parent
-        if (!parent || parent.nodeType === 9) // document node
+        var isRootNode = !parent || parent.nodeType === 9;
+        if (isRootNode) // document node
         {
             return new DomNodePathStep(nodeName, true);
         }
-        //endregion
 
-        var siblingsWithSameNodeName = getSiblingsWithSameNodeName(node, siblings);
-        var needsAttributeName = hasUniqueAttributeName(node,siblingsWithSameNodeName);
+        var hasAttributeName = hasUniqueAttributeName(node,siblingsWithSameNodeName);
         var needsClassNames = siblingsWithSameNodeName.length > 0;
-        var needsNthChild = isNeedsNthChild(node, siblingsWithSameNodeName, needsAttributeName);
+        var needsNthChild = isNeedsNthChild(node, siblingsWithSameNodeName, hasAttributeName);
         var needsType = hasType(node);
 
         var result = nodeName;
 
-        if (needsAttributeName) {
+        if (hasAttributeName) {
             var attributeName = node.getAttribute("name");
             result += "[name=\"" + cssEscaper.escape(attributeName) + "\"]";
             return new DomNodePathStep(result, true);
@@ -149,16 +136,22 @@ function SelectorGeneratorStep(options) {
 
     /**
      * element has siblings with same id and same tag
-     * @function hasSiblingsWithId
-     * @param {Array} siblings Array of elements , parent.children
-     * @param {String} id
-     * @param {String} nodeName
+     * @function hasId
+     * @param {Element} node
+     * @param {Array<Element>} siblings Array of elements , parent.children
      * @return {boolean}
      */
-    function hasSiblingsWithId(siblings, id, nodeName) {
-        return _.filter(siblings, function (el) {
-                return el.nodeType === 1 && el.getAttribute("id") === id && el.nodeName.toLowerCase() === nodeName;
-            }).length !== 1;
+    function hasId(node, siblings) {
+        var id = node.getAttribute("id");
+        if(!id){
+            return false;
+        }
+        if(autogenCheck(id)){
+            return false;
+        }
+        return _.filter(siblings, function (s) {
+                return s.getAttribute("id") === id;
+            }).length === 0;
     }
 
     /**
@@ -186,7 +179,9 @@ function SelectorGeneratorStep(options) {
         }
 
         var classes = classAttribute.split(/\s+/g);
-        var existClasses = _.filter(classes, Boolean);
+        var existClasses = _.filter(classes, function(c){
+            return c && !autogenCheck(c);
+        });
         return _.map(existClasses, function (name) {
             // The prefix is required to store "__proto__" in a object-based map.
             return "$" + name;
@@ -205,7 +200,7 @@ function SelectorGeneratorStep(options) {
      * @return {boolean}
      */
     function isSimpleInput(node, isTargetNode) {
-        return isTargetNode && node.nodeName.toLowerCase() === "input" && !node.getAttribute("id") && !getClassName(node);
+        return isTargetNode && node.nodeName.toLowerCase() === "input" && !getClassName(node);
     }
 
     /**

@@ -16,15 +16,15 @@ gulp.task("test", function (done) {
     var server = new Server({
         configFile: __dirname + "/karma.conf.js",
         singleRun: true
-    }, function() {
+    }, function () {
         done();
     });
     return server.start();
 });
-gulp.task("clean", function(){
+gulp.task("clean", function () {
     return del([pkg.name + ".js"]);
 });
-gulp.task("concat", function(){
+gulp.task("concat", function () {
     return gulp.src(src)
         .pipe(concat(pkg.name + ".js", {
             sep: os.EOL + os.EOL,
@@ -44,9 +44,9 @@ gulp.task("concat", function(){
             "    exports.version = \"" + pkg.version + "\";" + os.EOL +
             "  }" + os.EOL + os.EOL +
             " (function(exports){ " +
-             os.EOL +
+            os.EOL +
             "  function SelectorGenerator(options){" +
-             os.EOL + os.EOL))
+            os.EOL + os.EOL))
         .pipe(concat.footer(os.EOL + os.EOL +
             "  return new SelectorGenerator(options);" +
             os.EOL +
@@ -65,13 +65,17 @@ gulp.task("concat", function(){
 });
 
 gulp.task("eslint", function () {
-    return gulp.src(["./src/**/*.js", "./tests/*.spec.js","./selector-generator.js"])
+    return gulp.src(["./src/**/*.js", "./tests/*.spec.js", "./selector-generator.js"])
         .pipe(eslint())
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
 });
-gulp.task("default", gulpSync.sync(["clean","concat","test"]));
+gulp.task("default", gulpSync.sync(["clean", "concat", "test"]));
 
-gulp.task("watch-test",function(){
-    return gulp.watch(["./src/**/*.js", "./tests/*.spec.js","package.json"], gulpSync.sync(["clean","concat","test"]));
+gulp.task("watch-test", function () {
+    return gulp.watch([
+        "./src/**/*.js",
+        "./tests/*.spec.js",
+        "./tests/fakeElementSelectors.js",
+        "package.json"], gulpSync.sync(["clean", "concat", "test"]));
 });
