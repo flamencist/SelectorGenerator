@@ -705,7 +705,7 @@ var fakeElementSelectors = (function () {
         }),
         getFakeElement({
             type: "find correct password selector for https://account.box.com/login",
-            description: "should get element tag",
+            description: "should get element tag with name",
             html:
             "<html>" +
             "<body>" +
@@ -734,7 +734,7 @@ var fakeElementSelectors = (function () {
         }),
         getFakeElement({
             type: "find correct login selector for https://account.box.com/login",
-            description: "should get element tag",
+            description: "should get element tag with name",
             html:
             "<html>" +
             "<body>" +
@@ -760,6 +760,24 @@ var fakeElementSelectors = (function () {
             "</body>" +
             "</html>",
             selector: "input[name=\"login\"]"
+        }),
+        getFakeElement({
+            type: "find correct button selector for https://stepik.org/login",
+            description: "should get element tag with type",
+            html:
+            "<form>\r\n  " +
+                "<div class=\"flex-row center-xs\">\r\n    " +
+                "<div class=\"col-xs-6 sign-form sign-form__shaking\">\r\n        " +
+                    "<h3>Login with  E-mail:</h3>\r\n        " +
+                    "<label class=\"sign-form__hidden-label\" for=\"id_login\">E-mail</label>\r\n        " +
+                    "<input id=\"id_login\" autofocus=\"\" placeholder=\"E-mail\" spellcheck=\"true\" name=\"login\" type=\"text\" class=\"sign-form__input ember-view ember-text-field\">\r\n       " +
+                    "<label class=\"sign-form__hidden-label\" for=\"id_password\">Password</label>\r\n        " +
+                    "<input id=\"id_password\" placeholder=\"Password\" name=\"password\" type=\"password\" class=\"sign-form__input ember-view ember-text-field\">\r\n        " +
+                    "<button type=\"submit\" class=\"sign-form__btn \">Log in</button>\r\n      " +
+                "</div>\r\n  " +
+                "</div>\r\n" +
+            "</form>",
+            selector: "div > button[type=\"submit\"]"
         })
     ];
 })();

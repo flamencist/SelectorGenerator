@@ -125,7 +125,7 @@ function SelectorGeneratorStep(options) {
     }
 
     function hasType(node) {
-        return node.getAttribute("type") && ( (isSimpleInput(node, options.targetNode === node) && !getClassName(node)) || isFormWithoutId(node));
+        return node.getAttribute("type") && ( (isSimpleInput(node, options.targetNode === node) && !getClassName(node)) || isFormWithoutId(node) || isButtonWithoutId(node));
     }
 
     /**
@@ -193,6 +193,10 @@ function SelectorGeneratorStep(options) {
 
     function isFormWithoutId(node) {
         return node.nodeName.toLowerCase() === "form" && !node.getAttribute("id");
+    }
+
+    function isButtonWithoutId(node) {
+        return node.nodeName.toLowerCase() === "button" && !node.getAttribute("id");
     }
 
     /**
