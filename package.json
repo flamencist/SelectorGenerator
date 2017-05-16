@@ -1,6 +1,6 @@
 {
   "name": "selector-generator",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "JavaScript object that creates a unique CSS selector for a given DOM element. It has no external dependencies.",
   "main": "selector-generator.js",
   "scripts": {
