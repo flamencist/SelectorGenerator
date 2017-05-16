@@ -564,7 +564,7 @@ var fakeElementSelectors = (function () {
             "<html>" +
             "<body>" +
             "<form>" +
-            "<input type=\"text\" id=\"ember1362\" /><br/>" +
+            "<input type=\"text\" id=\"ember1\" /><br/>" +
             "</form>" +
             "</body>" +
             "</html>",
@@ -702,6 +702,64 @@ var fakeElementSelectors = (function () {
             "</body>" +
             "</html>",
             selector: "form > input[type=\"text\"]"
+        }),
+        getFakeElement({
+            type: "find correct password selector for https://account.box.com/login",
+            description: "should get element tag",
+            html:
+            "<html>" +
+            "<body>" +
+            "<form id=\"login-form\" method=\"POST\" action=\"/login?redirect_url=%2F\">" +
+            "<div class=\"login-container\"> " +
+                "<h1>Sign In to Your Account</h1> " +
+                "<label class=\"form-field\"> " +
+                "<span>Email Address</span>" +
+                    "<input type=\"text\" name=\"login\" class=\"inp-full-width\" >" +
+                "</label>" +
+                "<label class=\"form-field\"> " +
+                    "<span>Password</span>" +
+                    "<input type=\"password\" name=\"password\" class=\"inp-full-width\">" +
+                "</label> " +
+                "<div class=\"form-buttons\">" +
+                    "<button type=\"submit\" class=\"btn btn-primary btn-full-width\"> Log In</button>" +
+                "</div> " +
+                "<input type=\"text\" style=\"display: none\" name=\"_pw_sql\"> " +
+                "<input type=\"hidden\" name=\"request_token\" value=\"107909d2a33f7c81a985412156208dc23810d564601261621e95fcc36f40ae11\">" +
+                "<input type=\"hidden\" name=\"redirect_url\" value=\"\/\">" +
+            "</div>" +
+            "</form>"+
+            "</body>" +
+            "</html>",
+            selector: "input[name=\"password\"]"
+        }),
+        getFakeElement({
+            type: "find correct login selector for https://account.box.com/login",
+            description: "should get element tag",
+            html:
+            "<html>" +
+            "<body>" +
+            "<form id=\"login-form\" method=\"POST\" action=\"/login?redirect_url=%2F\">" +
+            "<div class=\"login-container\"> " +
+            "<h1>Sign In to Your Account</h1> " +
+            "<label class=\"form-field\"> " +
+            "<span>Email Address</span>" +
+            "<input type=\"text\" name=\"login\" class=\"inp-full-width\" >" +
+            "</label>" +
+            "<label class=\"form-field\"> " +
+            "<span>Password</span>" +
+            "<input type=\"password\" name=\"password\" class=\"inp-full-width\">" +
+            "</label> " +
+            "<div class=\"form-buttons\">" +
+            "<button type=\"submit\" class=\"btn btn-primary btn-full-width\"> Log In</button>" +
+            "</div> " +
+            "<input type=\"text\" style=\"display: none\" name=\"_pw_sql\"> " +
+            "<input type=\"hidden\" name=\"request_token\" value=\"107909d2a33f7c81a985412156208dc23810d564601261621e95fcc36f40ae11\">" +
+            "<input type=\"hidden\" name=\"redirect_url\" value=\"\/\">" +
+            "</div>" +
+            "</form>"+
+            "</body>" +
+            "</html>",
+            selector: "input[name=\"login\"]"
         })
     ];
 })();

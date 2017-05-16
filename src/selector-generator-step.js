@@ -32,7 +32,7 @@ function SelectorGeneratorStep(options) {
         if (needsId) {
             var id = node.getAttribute("id");
             return new DomNodePathStep(nodeName + idSelector(id), true);
-
+        }
         var isRootNode = !parent || parent.nodeType === 9;
         if (isRootNode) // document node
         {
@@ -71,6 +71,9 @@ function SelectorGeneratorStep(options) {
 
     function hasUniqueAttributeName(node, siblingsWithSameNodeName){
         var attributeName = node.getAttribute("name");
+        if(!attributeName || autogenCheck(attributeName)){
+            return false;
+        }
         var isSimpleFormElement = isSimpleInput(node, options.targetNode === node) || isFormWithoutId(node);
         return !!(isSimpleFormElement && attributeName && !_.find(siblingsWithSameNodeName,function(sibling){
             return sibling.getAttribute("name") === attributeName;
@@ -122,7 +125,7 @@ function SelectorGeneratorStep(options) {
     }
 
     function hasType(node) {
-        return node.getAttribute("type") && (isSimpleInput(node, options.targetNode === node) || isFormWithoutId(node));
+        return node.getAttribute("type") && ( (isSimpleInput(node, options.targetNode === node) && !getClassName(node)) || isFormWithoutId(node));
     }
 
     /**
@@ -200,7 +203,7 @@ function SelectorGeneratorStep(options) {
      * @return {boolean}
      */
     function isSimpleInput(node, isTargetNode) {
-        return isTargetNode && node.nodeName.toLowerCase() === "input" && !getClassName(node);
+        return isTargetNode && node.nodeName.toLowerCase() === "input" ;
     }
 
     /**
