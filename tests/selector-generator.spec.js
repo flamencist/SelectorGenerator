@@ -37,7 +37,7 @@ describe("selectorGenerator.getSelector", function () {
         });
 
         it("return empty if node nodeType is not element", function () {
-            var htmlElement = HTMLElement;
+            var htmlElement = typeof HTMLElement !== "undefined" ? HTMLElement : typeof Element !== "undefined"? Element: {} ;
             htmlElement.nodeType = 2;
             var generator = new SelectorGenerator();
             var result = generator.getSelector(htmlElement);
