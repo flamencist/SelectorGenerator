@@ -70,7 +70,9 @@ gulp.task("eslint", function () {
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
 });
-gulp.task("default", gulpSync.sync(["clean", "concat", "test"]));
+gulp.task("default", function(){
+    return gulpSync.sync(["clean", "concat", "test"])
+});
 
 gulp.task("watch-test", function () {
     return gulp.watch([
