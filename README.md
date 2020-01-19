@@ -29,3 +29,14 @@ Or [yarn](https://yarnpkg.com/lang/en/):
 
 You can view the results of the SelectorGenerator test suite [in your browser!](https://rawgit.com/flamencist/SelectorGenerator/master/spec-runner.html)
 
+### License
+
+This software is distributed under the terms of the MIT License (MIT).
+
+### Authors
+
+Alexander Chermyanin / [LinkedIn](https://www.linkedin.com/in/alexander-chermyanin)
+
+
+
+Contributions and bugs reports are welcome.
