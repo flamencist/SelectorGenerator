@@ -9,7 +9,7 @@ JavaScript object that creates a unique CSS selector for a given DOM element. It
  
 Help support the project:
 
-<a href="https://www.buymeacoffee.com/flamencist" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
+<a href="https://www.buymeacoffee.com/flamencist" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
 
 ## Overview    
     var generator = new SelectorGenerator();
